@@ -22,3 +22,7 @@ OLED shows you the keys mappings.
 In any layer, press encoder to go to layer selection.
 
 In layer selection, press bottom right key to toggle reverse mouse scroll.
+
+## Tips for Mill-Max Hot Swap users
+
+Support the PCB with ~4mm silicone stand-offs to prevent PCB sinks during key presses.
