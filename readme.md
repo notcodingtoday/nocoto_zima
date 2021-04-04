@@ -4,7 +4,7 @@ This is a custom keymap and software for [splitkb.com Zima](https://splitkb.com/
 
 ## Installation
 
-In [qmk](https://github.com/qmk/qmk_firmware) repo, clone this repository under `keyboards/splitkb/zima/keymaps` then run `qmk compile -kb splitkb/zima -km nocoto-zima` (or equivalent `make` command).
+In [qmk](https://github.com/qmk/qmk_firmware) repo, clone this repository under `keyboards/splitkb/zima/keymaps` then run `qmk compile -kb splitkb/zima -km nocoto_zima` (or equivalent `make` command).
 
 ## Features
 
