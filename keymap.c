@@ -22,16 +22,19 @@ enum nocoto_layers {
   LAYER_RGB,
   LAYER_FNC,
   LAYER_MDA,
+
   LAYER_SLT
 };
 
 enum nocoto_keycodes {
   KC_RMW = SAFE_RANGE,
+  KC_MDA_SCRL
 };
 
 #define NO_MUSIC_MODE
 
 static bool reverse_mw = true;
+static bool mda_scroll_mode = false;
 static float song_mw_toggle[][2] = SONG(QWERTY_SOUND);
 static float song_slt_enter[][2] = SONG(NUM_LOCK_OFF_SOUND);
 static float song_slt_exit[][2] = SONG(CAPS_LOCK_ON_SOUND);
@@ -127,7 +130,12 @@ void oled_task_user(void) {
 
   } else if (get_highest_layer(layer_state) == LAYER_MDA) {
     oled_write((char[]){' ', anim_k, ' ', 0x00}, false);
-    oled_write_ln_P(PSTR(   "  .   .   |  Mda"), false);
+    if (mda_scroll_mode) {
+      oled_write_P(PSTR(" Vol "), false);
+    } else {
+      oled_write_P(PSTR(" Srl "), false);
+    }
+    oled_write_ln_P(PSTR(        " .   |  Mda"), false);
     oled_write_ln_P(PSTR(" .   .   .   |  "), false);
     oled_write_P(PSTR(   " <   "), false);
     oled_write((char[]){icon_playpause, 0x00}, false);
@@ -137,9 +145,9 @@ void oled_task_user(void) {
     oled_write_ln(bot_k, false);
 
   } else if (get_highest_layer(layer_state) == LAYER_SLT) {
-    oled_write_P(PSTR(   "Num Set RGB  |   "), false);
+    oled_write_P(PSTR(   " +  Set RGB  |   "), false);
     oled_write_ln((char[]){anim_k, 0x00}, false);
-    oled_write_ln_P(PSTR("Fnc  .   .   |  "), false);
+    oled_write_ln_P(PSTR("Fnc Num  .   |  "), false);
     oled_write_P(PSTR(   " .  Mda  .   |  "), false);
     oled_write_ln(top_k, false);
     oled_write_P(PSTR(   " .   .  "), false);
@@ -165,6 +173,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
       PLAY_SONG(song_mw_toggle);
     }
     return false;
+  } else if (keycode == KC_MDA_SCRL) {
+    if (record->event.pressed) {
+      mda_scroll_mode = !mda_scroll_mode;
+      PLAY_SONG(song_mw_toggle);
+    }
+    return false;
   }
   return true;
 }
@@ -185,7 +199,7 @@ void encoder_update_user(uint8_t index, bool clockwise) {
 #    endif
 
   if (clockwise) {
-    if (get_highest_layer(layer_state) == LAYER_MDA) {
+    if (!mda_scroll_mode && get_highest_layer(layer_state) == LAYER_MDA) {
       tap_code(KC_VOLU);
     } else if (reverse_mw) {
       tap_code(KC_WH_D);
@@ -193,7 +207,7 @@ void encoder_update_user(uint8_t index, bool clockwise) {
       tap_code(KC_WH_U);
     }
   } else {
-    if (get_highest_layer(layer_state) == LAYER_MDA) {
+    if (!mda_scroll_mode && get_highest_layer(layer_state) == LAYER_MDA) {
       tap_code(KC_VOLD);
     } else if (reverse_mw) {
       tap_code(KC_WH_U);
@@ -207,7 +221,7 @@ void encoder_update_user(uint8_t index, bool clockwise) {
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     // Base
     [LAYER_NUM] = LAYOUT_ortho_4x3(
-        TO(LAYER_SLT),   KC_P0, KC_PENT,
+        TG(LAYER_SLT),   KC_P0, KC_PENT,
         KC_P7,           KC_P8, KC_P9,
         KC_P4,           KC_P5, KC_P6,
         KC_P2,           KC_P2, KC_P3
@@ -215,7 +229,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // Settings
     [LAYER_SET] = LAYOUT_ortho_4x3(
-        TO(LAYER_SLT), XXXXXXX, KC_NUMLOCK,
+        TG(LAYER_SLT), XXXXXXX, KC_NUMLOCK,
         AU_TOG,        CK_TOGG, CK_RST,
         XXXXXXX,       XXXXXXX, CK_UP,
         XXXXXXX,       XXXXXXX, CK_DOWN
@@ -223,7 +237,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // RGB
     [LAYER_RGB] = LAYOUT_ortho_4x3(
-        TO(LAYER_SLT), XXXXXXX, XXXXXXX,
+        TG(LAYER_SLT), XXXXXXX, XXXXXXX,
         RGB_HUI,       RGB_SAI, RGB_VAI,
         RGB_HUD,       RGB_SAD, RGB_VAD,
         RGB_RMOD,      RGB_TOG, RGB_MOD
@@ -231,7 +245,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // FN
     [LAYER_FNC] = LAYOUT_ortho_4x3(
-        TO(LAYER_SLT), KC_F10,  KC_F11,
+        TG(LAYER_SLT), KC_F10,  KC_F11,
         KC_F7,         KC_F8,   KC_F9,
         KC_F4,         KC_F5,   KC_F6,
         KC_F1,         KC_F2,   KC_F3
@@ -239,18 +253,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // FN
     [LAYER_MDA] = LAYOUT_ortho_4x3(
-        TO(LAYER_SLT), XXXXXXX, XXXXXXX,
-        XXXXXXX,       XXXXXXX, XXXXXXX,
-        KC_MPRV,       KC_MPLY, KC_MNXT,
-        XXXXXXX,       XXXXXXX, XXXXXXX
+        TG(LAYER_SLT), KC_MDA_SCRL, XXXXXXX,
+        XXXXXXX,       XXXXXXX,     XXXXXXX,
+        KC_MPRV,       KC_MPLY,     KC_MNXT,
+        XXXXXXX,       XXXXXXX,     XXXXXXX
     ),
 
     // Layers
     [LAYER_SLT] = LAYOUT_ortho_4x3(
-        TO(LAYER_NUM), TO(LAYER_SET), TO(LAYER_RGB),
-        TO(LAYER_FNC), XXXXXXX,       XXXXXXX,
+        _______,       TO(LAYER_SET), TO(LAYER_RGB),
+        TO(LAYER_FNC), TO(LAYER_NUM), XXXXXXX,
         XXXXXXX,       TO(LAYER_MDA), XXXXXXX,
         XXXXXXX,       XXXXXXX,       KC_RMW
     ),
 };
-
