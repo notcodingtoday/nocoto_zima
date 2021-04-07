@@ -15,6 +15,6 @@ AUDIO_ENABLE = yes         # Audio output
 
 ENCODER_ENABLE = yes       # ENables the use of one or more encoders
 OLED_DRIVER_ENABLE = yes   # Enables the use of OLED displays
-HAPTIC_ENABLE = no        # Supported but not included by defaut
+HAPTIC_ENABLE = no         # Supported but not included by defaut
 
 LTO_ENABLE = yes

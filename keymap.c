@@ -28,7 +28,12 @@ enum nocoto_layers {
 
 enum nocoto_keycodes {
   KC_RMW = SAFE_RANGE,
-  KC_MDA_SCRL
+  KC_MDA_SCRL,
+  SPOTIFY_VOL_UP,
+  SPOTIFY_VOL_DOWN,
+  SPOTIFY_FF,
+  SPOTIFY_RW,
+  SPOTIFY_SHOW,
 };
 
 #define NO_MUSIC_MODE
@@ -47,6 +52,8 @@ static uint32_t anim_timer = 0;
 static const char icon_playpause = 0x0E;
 static const char icon_arrow_right = 0x1A;
 static const char icon_arrow_left = 0x1B;
+static const char icon_triangle_right = 0x10;
+static const char icon_triangle_left = 0x11;
 
 void suspend_power_down_user(void) {
     is_asleep = true;
@@ -135,13 +142,19 @@ void oled_task_user(void) {
     } else {
       oled_write_P(PSTR(" Srl "), false);
     }
-    oled_write_ln_P(PSTR(        " .   |  Mda"), false);
-    oled_write_ln_P(PSTR(" .   .   .   |  "), false);
-    oled_write_P(PSTR(   " <   "), false);
+    oled_write_ln_P(PSTR(        " S   |  Mda"), false);
+    oled_write_ln_P(PSTR(" <<  +  >>   |  "), false);
+
+    oled_write_P(PSTR(" "), false);
+    oled_write((char[]){icon_triangle_left, 0x00}, false);
+    oled_write_P(PSTR("   "), false);
     oled_write((char[]){icon_playpause, 0x00}, false);
-    oled_write_P(PSTR(         "   >   |  "), false);
+    oled_write_P(PSTR("   "), false);
+    oled_write((char[]){icon_triangle_right, 0x00}, false);
+    oled_write_P(PSTR("   |  "), false);
     oled_write_ln(top_k, false);
-    oled_write_P(PSTR(   " .   .   .   |  "), false);
+
+    oled_write_P(PSTR(   " .   -   .   |  "), false);
     oled_write_ln(bot_k, false);
 
   } else if (get_highest_layer(layer_state) == LAYER_SLT) {
@@ -177,6 +190,26 @@ bool process_record_user(uint16_t keycode, keyrecord_t* record) {
     if (record->event.pressed) {
       mda_scroll_mode = !mda_scroll_mode;
       PLAY_SONG(song_mw_toggle);
+    }
+    return false;
+  } else if (keycode >= SPOTIFY_VOL_UP && keycode <= SPOTIFY_SHOW) {
+    if (record->event.pressed) {
+      register_code(KC_LALT);
+      register_code(KC_LGUI);
+      if (keycode == SPOTIFY_VOL_UP) {
+        tap_code(KC_K);
+      } else if (keycode == SPOTIFY_VOL_DOWN) {
+        tap_code(KC_J);
+      } else if (keycode == SPOTIFY_FF) {
+        tap_code(KC_L);
+      } else if (keycode == SPOTIFY_RW) {
+        tap_code(KC_H);
+      } else if (keycode == SPOTIFY_SHOW) {
+        tap_code(KC_O);
+      }
+    } else {
+      unregister_code(KC_LGUI);
+      unregister_code(KC_LALT);
     }
     return false;
   }
@@ -253,10 +286,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
     // FN
     [LAYER_MDA] = LAYOUT_ortho_4x3(
-        TG(LAYER_SLT), KC_MDA_SCRL, XXXXXXX,
-        XXXXXXX,       XXXXXXX,     XXXXXXX,
-        KC_MPRV,       KC_MPLY,     KC_MNXT,
-        XXXXXXX,       XXXXXXX,     XXXXXXX
+        TG(LAYER_SLT), KC_MDA_SCRL,      SPOTIFY_SHOW,
+        SPOTIFY_RW,    SPOTIFY_VOL_UP,   SPOTIFY_FF,
+        KC_MPRV,       KC_MPLY,          KC_MNXT,
+        XXXXXXX,       SPOTIFY_VOL_DOWN, XXXXXXX
     ),
 
     // Layers
